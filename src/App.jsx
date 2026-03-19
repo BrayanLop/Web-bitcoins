@@ -5,7 +5,9 @@ import { Sidebar } from './components/Sidebar';
 import { Card } from './components/Card';
 import { TaskList } from './components/TaskList';
 import { StatsCards } from './components/StatsCards';
-import { ChartCard } from './components/ChartCard';
+import { Semaforo } from './components/Semaforo';
+import ShoppingCart from './components/ShoppingCart';
+import {  ToDo } from './components/ToDo';
 import './App.css';
 
 function App() {
@@ -32,30 +34,23 @@ function App() {
       <Navbar />
       <div className="dashboard-content">
         <Sidebar />
+
         <main className="dashboard-main">
-          <section className="hero-panel" id="inicio">
-            <div className="hero-copy">
-              <span className="hero-eyebrow">Mercado en tiempo real</span>
-              <h1 className="hero-title">Panel profesional para seguir Bitcoin con una vista clara y ordenada.</h1>
-              <p className="hero-description">
-                Visualiza el precio, la variación semanal y la actividad reciente en una sola pantalla, sin elementos montados ni bloques desordenados.
-              </p>
-              <div className="hero-actions">
-                <button className="dashboard-btn-primary" type="button">Ver mercado</button>
-                <button className="dashboard-btn-ghost" type="button">Exportar resumen</button>
-              </div>
-            </div>
-            <div className="hero-aside">
-              <div className="hero-price-card">
-                <span className="hero-price-label">BTC / USD</span>
-                <strong className="hero-price-value">$67,500</strong>
-                <span className="hero-price-change">+2.48% en las ultimas 24h</span>
-              </div>
-              <ChartCard />
-            </div>
+
+          <section className="todo-container" id="tareas">
+            <div className="todo-header">Lista de Tareas</div>
+            <ToDo />
           </section>
 
-          <section className="dashboard-section" id="precio">
+          <section className='semaforo'>
+            <Semaforo />
+          </section>
+
+          <section className="dashboard-carrito">
+            <ShoppingCart />
+           </section>
+
+          <section id="precio">
             <StatsCards stats={stats} />
           </section>
 
