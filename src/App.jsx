@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LayoutBase } from './components/LayoutBase';
 import { Inicio } from './components/Inicio';
 import { Precio } from './components/Precio';
@@ -9,6 +9,17 @@ import { ToDo } from './components/ToDo';
 import { Semaforo } from './components/Semaforo';
 import { Productos } from './components/Productos';
 import ShoppingCart from './components/ShoppingCart';
+import TarjetaUsuario from './components/TarjetaUsuario';
+import { ProductDetail } from './components/ProductDetail';
+
+
+
+// Simulación de autenticación
+const isLogged = false; // Cambia a true para probar acceso a /cart
+
+function ProtectedRoute({ children }) {
+  return isLogged ? children : <Navigate to="/" replace />;
+}
 
 function App() {
   return (
@@ -22,6 +33,12 @@ function App() {
           <Route path="tareas" element={<ToDoWrapper />} />
           <Route path="semaforo" element={<SemaforoWrapper />} />
           <Route path="productos" element={<ProductosWrapper />} />
+          <Route path="product/:id" element={<ProductDetail />} />
+          <Route path="cart" element={
+            <ProtectedRoute>
+              <ShoppingCartWrapper />
+            </ProtectedRoute>
+          } />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useFetch } from '../hooks/useFetch';
 
 function Productos() {
-  const [productos, setProductos] = useState([
-    { id: 1, nombre: 'Producto A', precio: 10 },
-    { id: 2, nombre: 'Producto B', precio: 20 },
-    { id: 3, nombre: 'Producto C', precio: 30 },
-  ]);
+  const { data: productos, loading, error } = useFetch('https://fakestoreapi.com/products');
+
+  if (loading) return <p>Cargando productos...</p>;
+  if (error) return <p>Error: {error}</p>;
+  if (!productos) return <p>No hay productos disponibles.</p>;
 
   return (
     <div className='container-productos'>
@@ -13,7 +16,10 @@ function Productos() {
       <ul className='lista-productos'>
         {productos.map(producto => (
           <li key={producto.id} className='detalle-producto'>
-            <span>{producto.nombre}</span> - <span>${producto.precio}</span>
+            <span>{producto.title}</span> - <span>${producto.price}</span>
+            <Link to={`/product/${producto.id}`} className="ver-mas-btn" style={{ marginLeft: 10 }}>
+              Ver Más
+            </Link>
           </li>
         ))}
       </ul>
