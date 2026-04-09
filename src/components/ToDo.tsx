@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Lista } from './Lista';
+import type { TaskDraft, TaskItem } from '../types';
+
+const initialCategories: string[] = ['categoria1', 'categoria2', 'categoria3'];
 
 function ToDo() {
-
-      const [textoTarea, setTextoTarea] = useState("");
-      const [categorias, setCategorias] = useState([ "categoria1", "categoria2", "categoria3" ]);
-      const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(categorias[0]);
-      const [listaTareas, setListaTareas] = useState([]);
+  const [categorias] = useState<string[]>(initialCategories);
+  const [formulario, setFormulario] = useState<TaskDraft>({
+    texto: '',
+    categoria: initialCategories[0],
+  });
+  const [listaTareas, setListaTareas] = useState<TaskItem[]>([]);
 
       function agregarLista() {
-            if (textoTarea) {
-            setListaTareas([...listaTareas, { texto: textoTarea, categoria: categoriaSeleccionada }]);
-            setTextoTarea("");
+    if (formulario.texto.trim()) {
+    setListaTareas([
+      ...listaTareas,
+      {
+        id: Date.now(),
+        texto: formulario.texto,
+        categoria: formulario.categoria,
+        completed: false,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    setFormulario({ texto: '', categoria: formulario.categoria });
             }
         }
     
-      function eliminarTarea(index) {
+  function eliminarTarea(index: number) {
             const nuevasTareas = [...listaTareas];
             nuevasTareas.splice(index, 1);
             setListaTareas(nuevasTareas);
@@ -28,15 +41,21 @@ function ToDo() {
                     type="text"
                     placeholder="Escribe una tarea..."
                     className="dashboard-input todo-input"
-                    value={textoTarea}
-                    onChange={e => setTextoTarea(e.target.value)}
+                    value={formulario.texto}
+                    onChange={(event) => setFormulario({
+                      ...formulario,
+                      texto: event.target.value,
+                    })}
               />
 
               <select
                 id="categorias"
                 className="dashboard-input todo-select"
-                value={categoriaSeleccionada}
-                onChange={e => setCategoriaSeleccionada(e.target.value)}
+                value={formulario.categoria}
+                onChange={(event) => setFormulario({
+                  ...formulario,
+                  categoria: event.target.value,
+                })}
               >
                 {categorias.map((cat) => (
                   <option key={cat}>{cat}</option>
@@ -55,14 +74,13 @@ function ToDo() {
                   borderRadius: '5px',
                   border: '1px solid #c3e6cb',
                   fontWeight: 'bold',
-                  className: 'todo-alert'
                 }}>
                   Coronaste, Has cumplido con 4 tareas.
                 </div>
               )}
             </div>
 
-            <Lista id="lista-tareas" items={listaTareas} aplicaEliminar={eliminarTarea} />
+            <Lista idLista="lista-tareas" items={listaTareas} aplicaEliminar={eliminarTarea} />
         </>
     );
 }

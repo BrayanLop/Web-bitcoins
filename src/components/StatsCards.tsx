@@ -1,6 +1,6 @@
-import React from 'react';
+import type { PriceStat } from '../types';
 
-export function StatsCards({ stats }) {
+export function StatsCards({ stats }: { stats: PriceStat[] }) {
   return (
     <div className="stats-grid">
       {stats.map((stat, idx) => (

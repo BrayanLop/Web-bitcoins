@@ -1,5 +1,6 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useOutletContext } from 'react-router-dom';
 import { LayoutBase } from './components/LayoutBase';
 import { Inicio } from './components/Inicio';
 import { Precio } from './components/Precio';
@@ -9,15 +10,13 @@ import { ToDo } from './components/ToDo';
 import { Semaforo } from './components/Semaforo';
 import { Productos } from './components/Productos';
 import ShoppingCart from './components/ShoppingCart';
-import TarjetaUsuario from './components/TarjetaUsuario';
 import { ProductDetail } from './components/ProductDetail';
-
-
+import type { DashboardOutletContext } from './types';
 
 // Simulación de autenticación
 const isLogged = false; // Cambia a true para probar acceso a /cart
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   return isLogged ? children : <Navigate to="/" replace />;
 }
 
@@ -47,20 +46,18 @@ function App() {
 
 
 // Wrappers para pasar context a los componentes de sección
-import { useOutletContext } from 'react-router-dom';
-
 function PrecioWrapper() {
-  const { stats } = useOutletContext();
+  const { stats } = useOutletContext<DashboardOutletContext>();
   return <Precio stats={stats} />;
 }
 
 function HistorialWrapper() {
-  const { moneda, setMoneda } = useOutletContext();
+  const { moneda, setMoneda } = useOutletContext<DashboardOutletContext>();
   return <Historial moneda={moneda} setMoneda={setMoneda} />;
 }
 
 function ComunidadWrapper() {
-  const { publicaciones } = useOutletContext();
+  const { publicaciones } = useOutletContext<DashboardOutletContext>();
   return <Comunidad publicaciones={publicaciones} />;
 }
 

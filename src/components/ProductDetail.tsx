@@ -1,10 +1,10 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
+import type { Product } from '../types';
 
 export function ProductDetail() {
-  const { id } = useParams();
-  const { data: product, loading, error } = useFetch(`https://fakestoreapi.com/products/${id}`);
+  const { id = '' } = useParams<{ id: string }>();
+  const { data: product, loading, error } = useFetch<Product>(`https://fakestoreapi.com/products/${id}`);
 
   if (loading) return <p>Cargando producto...</p>;
   if (error) return <p>Error: {error}</p>;

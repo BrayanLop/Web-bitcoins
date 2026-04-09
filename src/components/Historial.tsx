@@ -1,7 +1,13 @@
-import React from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { Card } from './Card';
 
-export function Historial({ moneda, setMoneda }) {
+export function Historial({
+  moneda,
+  setMoneda,
+}: {
+  moneda: string;
+  setMoneda: Dispatch<SetStateAction<string>>;
+}) {
   return (
     <section id="historial">
       <Card title="Historial">
@@ -10,7 +16,7 @@ export function Historial({ moneda, setMoneda }) {
           <input
             id="moneda"
             value={moneda}
-            onChange={e => setMoneda(e.target.value)}
+            onChange={(event) => setMoneda(event.target.value)}
             type="text"
             placeholder="BTC"
             className="dashboard-input"
