@@ -17,6 +17,7 @@ export function Sidebar() {
           <li><NavLink to="/comentarios" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">04</span><span>Comunidad</span></NavLink></li>
           <li><NavLink to="/productos" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">05</span><span>Productos</span></NavLink></li>
           <li><NavLink to="/cart" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">06</span><span>Carrito</span></NavLink></li>
+          <li><NavLink to="/nexus" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">₿</span><span>Rat</span></NavLink></li>
         </ul>
       </nav>
     </aside>

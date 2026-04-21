@@ -11,10 +11,10 @@ import { Semaforo } from './components/Semaforo';
 import { Productos } from './components/Productos';
 import ShoppingCart from './components/ShoppingCart';
 import { ProductDetail } from './components/ProductDetail';
+import { NexusCrypto } from './components/NexusCrypto';
 import type { DashboardOutletContext } from './types';
 
-// Simulación de autenticación
-const isLogged = false; // Cambia a true para probar acceso a /cart
+const isLogged = false;
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   return isLogged ? children : <Navigate to="/" replace />;
@@ -33,6 +33,7 @@ function App() {
           <Route path="semaforo" element={<SemaforoWrapper />} />
           <Route path="productos" element={<ProductosWrapper />} />
           <Route path="product/:id" element={<ProductDetail />} />
+          <Route path="nexus" element={<NexusCrypto />} />
           <Route path="cart" element={
             <ProtectedRoute>
               <ShoppingCartWrapper />
@@ -45,7 +46,6 @@ function App() {
 }
 
 
-// Wrappers para pasar context a los componentes de sección
 function PrecioWrapper() {
   const { stats } = useOutletContext<DashboardOutletContext>();
   return <Precio stats={stats} />;
