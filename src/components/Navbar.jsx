@@ -8,8 +8,7 @@ export function Navbar() {
         <h2 className="dashboard-navbar-title">Bitcoin</h2>
       </div>
       <div className="dashboard-navbar-meta">
-        <span className="dashboard-navbar-badge">Mercado abierto</span>
-        <span className="dashboard-navbar-session">Actualizacion intradia</span>
+        {/* <span className="dashboard-navbar-badge">Mercado abierto</span> */}
       </div>
     </nav>
   );
