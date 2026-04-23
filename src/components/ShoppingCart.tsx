@@ -1,61 +1,57 @@
 import { useState } from 'react';
-import type { ShoppingCartState } from '../types';
-
-const initialCart: ShoppingCartState = {
-  items: [
-    { id: 1, nombre: 'Bitcoin', precio: 55, cantidad: 1 },
-    { id: 2, nombre: 'Ethereum', precio: 120, cantidad: 1 },
-    { id: 3, nombre: 'Ripple', precio: 220, cantidad: 1 },
-    { id: 4, nombre: 'Litecoin', precio: 77, cantidad: 1 },
-    { id: 5, nombre: 'Cardano', precio: 67, cantidad: 1 },
-  ],
-  pagado: false,
-  pago: {
-    moneda: 'USD',
-    metodo: 'Cripto',
-    confirmado: false,
-  },
-};
+import { useOutletContext } from 'react-router-dom';
+import type { DashboardOutletContext } from '../types';
 
 export default function ShoppingCart() {
-  const [cart, setCart] = useState<ShoppingCartState>(initialCart);
+  const { cartItems, removeFromCart, clearCart } = useOutletContext<DashboardOutletContext>();
+  const [pagado, setPagado] = useState(false);
 
-  const total = cart.items.reduce((sum, producto) => sum + producto.precio * producto.cantidad, 0);
+  const total = cartItems.reduce((sum, producto) => sum + producto.precio * producto.cantidad, 0);
+
+  function handlePay() {
+    if (cartItems.length === 0) {
+      return;
+    }
+
+    setPagado(true);
+    clearCart();
+  }
 
   return (
     <div className='contenedor-carrito'>
       <div className='card-carrito'>
         <h2 className='titulo-carrito'>Tu carrito</h2>
-        {cart.pagado ? (
+        {pagado ? (
           <p className='mensaje-compra'>¡Gracias por su compra!</p>
         ) : (
         <div className='detalle-carrito'>
             <ul className='lista-productos'>
-            {cart.items.map((producto) => (
+            {cartItems.length === 0 ? (
+              <li className='detalle-producto'>No hay productos en el carrito.</li>
+            ) : (
+            cartItems.map((producto) => (
                 <li key={producto.id} className='detalle-producto'>
                 <span className='nombre-producto'>{producto.nombre} x {producto.cantidad}</span>
                 <span className='precio-producto'>${producto.precio}</span>
+                <button className='boton-pagar' type='button' onClick={() => removeFromCart(producto.id)}>
+                  Quitar uno
+                </button>
                 </li>
-            ))}
+            ))) }
             </ul>
  
             <div className='total-carrito'>
             <p className='texto-total-carrito'>
                 <strong>Total: {total}</strong>
             </p>
-            <p className='texto-total-carrito'>Metodo: {cart.pago.metodo}</p>
+            <p className='texto-total-carrito'>Metodo: Cripto</p>
             </div>
  
             <button
               className='boton-pagar'
-              onClick={() => setCart((currentCart) => ({
-                ...currentCart,
-                pagado: true,
-                pago: {
-                  ...currentCart.pago,
-                  confirmado: true,
-                },
-              }))}
+              type='button'
+              onClick={handlePay}
+              disabled={cartItems.length === 0}
             >
             Pagar Ahora
             </button>

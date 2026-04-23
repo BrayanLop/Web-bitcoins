@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
-import type { Product } from '../types';
+import type { DashboardOutletContext, Product } from '../types';
 
 function Productos() {
+  const { addToCart } = useOutletContext<DashboardOutletContext>();
   const { data: productos, loading, error } = useFetch<Product[]>('https://fakestoreapi.com/products');
 
   if (loading) return <p>Cargando productos...</p>;
@@ -16,6 +17,9 @@ function Productos() {
         {productos.map((producto) => (
           <li key={producto.id} className='detalle-producto'>
             <span>{producto.title}</span> - <span>${producto.price}</span>
+            <button type='button' className='ver-mas-btn' style={{ marginLeft: 10 }} onClick={() => addToCart(producto)}>
+              Agregar al carrito
+            </button>
             <Link to={`/product/${producto.id}`} className="ver-mas-btn" style={{ marginLeft: 10 }}>
               Ver Más
             </Link>

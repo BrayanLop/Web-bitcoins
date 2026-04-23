@@ -3,7 +3,7 @@ import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import '../App.css';
 import { Outlet } from 'react-router-dom';
-import type { CommunityPost, DashboardOutletContext, PriceStat } from '../types';
+import type { CartItem, CommunityPost, DashboardOutletContext, PriceStat, Product } from '../types';
 
 const initialStats: PriceStat[] = [
   { label: 'Precio Actual', value: '$67,500' },
@@ -41,6 +41,49 @@ const initialPosts: CommunityPost[] = [
 function LayoutBase() {
   const [moneda, setMoneda] = useState<string>('BTC');
   const [publicaciones, setPublicaciones] = useState<CommunityPost[]>(initialPosts);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  function addToCart(product: Product) {
+    setCartItems((currentItems) => {
+      const existingItem = currentItems.find((item) => item.id === product.id);
+
+      if (existingItem) {
+        return currentItems.map((item) => (
+          item.id === product.id
+            ? { ...item, cantidad: item.cantidad + 1 }
+            : item
+        ));
+      }
+
+      return [
+        ...currentItems,
+        {
+          id: product.id,
+          nombre: product.title,
+          precio: product.price,
+          cantidad: 1,
+        },
+      ];
+    });
+  }
+
+  function removeFromCart(productId: number) {
+    setCartItems((currentItems) => currentItems.flatMap((item) => {
+      if (item.id !== productId) {
+        return item;
+      }
+
+      if (item.cantidad === 1) {
+        return [];
+      }
+
+      return { ...item, cantidad: item.cantidad - 1 };
+    }));
+  }
+
+  function clearCart() {
+    setCartItems([]);
+  }
 
   const outletContext: DashboardOutletContext = {
     moneda,
@@ -48,6 +91,10 @@ function LayoutBase() {
     publicaciones,
     setPublicaciones,
     stats: initialStats,
+    cartItems,
+    addToCart,
+    removeFromCart,
+    clearCart,
   };
 
   return (

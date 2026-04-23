@@ -75,6 +75,10 @@ export interface DashboardOutletContext {
   publicaciones: CommunityPost[];
   setPublicaciones: Dispatch<SetStateAction<CommunityPost[]>>;
   stats: PriceStat[];
+  cartItems: CartItem[];
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: number) => void;
+  clearCart: () => void;
 }
 
 export type TaskDraft = Omit<TaskItem, 'id' | 'completed' | 'createdAt'>;

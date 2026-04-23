@@ -1,6 +1,5 @@
 
-import type { ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useOutletContext } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useOutletContext } from 'react-router-dom';
 import { LayoutBase } from './components/LayoutBase';
 import { Inicio } from './components/Inicio';
 import { Precio } from './components/Precio';
@@ -13,12 +12,6 @@ import ShoppingCart from './components/ShoppingCart';
 import { ProductDetail } from './components/ProductDetail';
 import { NexusCrypto } from './components/NexusCrypto';
 import type { DashboardOutletContext } from './types';
-
-const isLogged = false;
-
-function ProtectedRoute({ children }: { children: ReactNode }) {
-  return isLogged ? children : <Navigate to="/" replace />;
-}
 
 function App() {
   return (
@@ -34,11 +27,7 @@ function App() {
           <Route path="productos" element={<ProductosWrapper />} />
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="nexus" element={<NexusCrypto />} />
-          <Route path="cart" element={
-            <ProtectedRoute>
-              <ShoppingCartWrapper />
-            </ProtectedRoute>
-          } />
+          <Route path="cart" element={<ShoppingCartWrapper />} />
         </Route>
       </Routes>
     </BrowserRouter>
