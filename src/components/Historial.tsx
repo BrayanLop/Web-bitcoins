@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { Card } from './Card';
+import { supabase } from '../data/dataContext';
 
 interface HistoryRow {
   fecha: string;
@@ -37,6 +38,41 @@ export function Historial({
 }) {
   const [dias, setDias] = useState<number>(7);
   const [historial, setHistorial] = useState<HistoryRow[]>(() => buildHistory(moneda, 7));
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const { data, error } = await supabase.from('transacciones').select('*');
+        
+        if (error) {
+          console.warn('Error:', error.message);
+          return;
+        }
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+          console.log('Datos cargados:', data);
+          
+          const datosTransformados = data.map((item: any) => ({
+            fecha: item.fecha ? new Date(item.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) : 'N/A',
+            precio: item.monto ? `$${Number(item.monto).toLocaleString('en-US')}` : '$0',
+            variacion: item.crypto ? `${item.crypto}` : 'N/A'
+          }));
+          
+          setHistorial(datosTransformados);
+        } else {
+          console.log('No hay datos - data es null, no es array, o está vacía');
+        }
+      } catch (err) {
+        console.error('Error en cargarDatos:', err);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      cargarDatos();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -40,8 +40,8 @@ export function Inicio() {
     <section className="home-wall">
       <div className="home-wall-hero">
         <div className="home-wall-hero-copy">
-          <span className="home-wall-kicker">Panel central</span>
-          <h2 className="home-wall-title">BitRat</h2>
+          <span className="home-wall-kicker">CryptoRat</span>
+          <h2 className="home-wall-title">Bitcoin</h2>
           <p className="home-wall-description">
             Aquí tienes un resumen vivo del mercado, publicaciones destacadas de la comunidad y accesos
             rápidos para seguir operando sin entrar pantalla por pantalla.
