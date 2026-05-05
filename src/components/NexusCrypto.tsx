@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import './NexusCrypto.css';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UserSchema } from '../schemas/UserValidator';
+
 
 interface Movement {
   id: number;
@@ -11,9 +15,37 @@ interface Movement {
 
 export function NexusCrypto() {
   const [monto, setMonto] = useState('');
-  const [operacion, setOperacion] = useState('comprar');
   const [busqueda, setBusqueda] = useState('');
   const [movimientos, setMovimientos] = useState<Movement[]>([]);
+
+ const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: zodResolver(UserSchema),
+    mode: 'onChange',
+    defaultValues: {
+      username: '',
+      email: '',
+      points: 0,
+      operacion: 'comprar'
+    }
+  });
+
+  const onSubmit = (data: any) => {
+    const montoNum = parseFloat(monto);
+    if (!monto || isNaN(montoNum) || montoNum <= 0) return;
+    
+    const btcAmount = montoNum / precioActualBTC;
+    const nuevaFecha = new Date().toLocaleString('es-CO');
+    const nuevo: Movement = {
+      id: Date.now(),
+      type: data.operacion === 'comprar' ? 'Orden de Comprar' : 'Orden de Vender',
+      date: nuevaFecha,
+      amount: `${data.operacion === 'comprar' ? '+' : '-'}${btcAmount.toFixed(8)} BTC`,
+      isPositive: data.operacion === 'comprar',
+    };
+    setMovimientos(prev => [nuevo, ...prev]);
+    setMonto('');
+    reset();
+  };
 
   const precioActualBTC = 85000;
   const btcBalance = movimientos
@@ -22,22 +54,6 @@ export function NexusCrypto() {
       return m.isPositive ? acc + val : acc - val;
     }, 0);
   const usdValue = Math.round(btcBalance * precioActualBTC);
-
-  const handleEjecutar = () => {
-    const montoNum = parseFloat(monto);
-    if (!monto || isNaN(montoNum) || montoNum <= 0) return;
-    const btcAmount = montoNum / precioActualBTC;
-    const nuevaFecha = new Date().toLocaleString('es-CO');
-    const nuevo: Movement = {
-      id: Date.now(),
-      type: operacion === 'comprar' ? 'Orden de Comprar' : 'Orden de Vender',
-      date: nuevaFecha,
-      amount: `${operacion === 'comprar' ? '+' : '-'}${btcAmount.toFixed(8)} BTC`,
-      isPositive: operacion === 'comprar',
-    };
-    setMovimientos(prev => [nuevo, ...prev]);
-    setMonto('');
-  };
 
   const filtrados = movimientos.filter(m =>
     m.type.toLowerCase().includes(busqueda.toLowerCase())
@@ -58,6 +74,7 @@ export function NexusCrypto() {
             <div className="nexus-form-card">
               <h3 className="nexus-form-title">Operar mercato</h3>
 
+              <form onSubmit={handleSubmit(onSubmit)}>
               <div className="nexus-form-group">
                 <label>Inversión (USD)</label>
                 <input
@@ -66,10 +83,11 @@ export function NexusCrypto() {
                   value={monto}
                   onChange={e => setMonto(e.target.value)}
                   min="0"
+                  required
                 />
               </div>
 
-              <div className="nexus-form-group">
+          <div className="nexus-form-group">
                 <label>Precio actual BTC</label>
                 <input
                   type="text"
@@ -80,15 +98,16 @@ export function NexusCrypto() {
 
               <div className="nexus-form-group">
                 <label>Operación</label>
-                <select value={operacion} onChange={e => setOperacion(e.target.value)}>
+                <select {...register("operacion" as any)}>
                   <option value="comprar">Comprar</option>
                   <option value="vender">Vender</option>
                 </select>
               </div>
 
-              <button className="nexus-btn-ejecutar" onClick={handleEjecutar}>
+              <button type="submit" className="nexus-btn-ejecutar">
                 Ejecutar
               </button>
+              </form>
             </div>
           </div>
 

@@ -1,5 +1,9 @@
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UserSchema } from '../schemas/UserValidator';
+import { useImagePreview } from '../hooks/useImagePreview';
 
 const activityItems = [
   {
@@ -32,6 +36,20 @@ export function Inicio() {
   const outletContext = useOutletContext();
   const publicaciones = outletContext?.publicaciones ?? [];
   const stats = outletContext?.stats ?? [];
+
+  const { preview, onFileSelected, clearPreview, fileInputRef } = useImagePreview();
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: zodResolver(UserSchema),
+    mode: 'onChange',
+    defaultValues: { points: 0 },
+  });
+
+  const onSubmit = (data) => {
+    console.log('Perfil guardado:', data, 'preview:', preview);
+    reset();
+    clearPreview();
+  };
 
   const featuredPosts = publicaciones.slice(0, 3);
   const featuredStats = stats.slice(0, 3);
@@ -160,6 +178,53 @@ export function Inicio() {
                 <span>Abre el panel extendido con balance y actividad.</span>
               </Link>
             </div>
+          </article>
+          <article className="home-wall-card home-wall-mini-card">
+            <span className="home-wall-card-kicker">Perfil rápido</span>
+            <h3 className="home-wall-card-title">Puntos e imagen</h3>
+
+            <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>Puntos</label>
+                <input
+                  type="number"
+                  placeholder="Ingresa tus puntos"
+                  {...register('points', { valueAsNumber: true })}
+                  style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid #333', background: '#1a1a2e', color: '#fff' }}
+                />
+                {errors.points && <span style={{ color: '#e74c3c', fontSize: '0.75rem' }}>{errors.points.message}</span>}
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>Imagen</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={onFileSelected}
+                  style={{ width: '100%', fontSize: '0.8rem' }}
+                />
+                {preview && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <img src={preview} alt="Preview" style={{ width: '100%', borderRadius: '8px', maxHeight: '140px', objectFit: 'cover' }} />
+                    <button
+                      type="button"
+                      onClick={clearPreview}
+                      style={{ marginTop: '0.4rem', width: '100%', padding: '0.35rem', borderRadius: '6px', border: '1px solid #e74c3c', background: 'transparent', color: '#e74c3c', cursor: 'pointer', fontSize: '0.8rem' }}
+                    >
+                      Limpiar imagen
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                style={{ padding: '0.4rem', borderRadius: '6px', border: 'none', background: '#4f6ef7', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}
+              >
+                Guardar
+              </button>
+            </form>
           </article>
         </aside>
       </div>
