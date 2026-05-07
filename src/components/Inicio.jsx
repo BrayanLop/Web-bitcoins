@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserSchema } from '../schemas/UserValidator';
 import { useImagePreview } from '../hooks/useImagePreview';
+import { uploadToVault } from "../services/StorageService";
+import { supabase } from "../data/dataContext";
 
 const activityItems = [
   {
@@ -38,17 +40,39 @@ export function Inicio() {
   const stats = outletContext?.stats ?? [];
 
   const { preview, onFileSelected, clearPreview, fileInputRef } = useImagePreview();
+  const [submitStatus, setSubmitStatus] = useState(null); // null | 'loading' | 'success' | 'error'
+  const [submitError, setSubmitError] = useState('');
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: zodResolver(UserSchema),
     mode: 'onChange',
-    defaultValues: { points: 0 },
+    defaultValues: { points: 1 },
   });
 
-  const onSubmit = (data) => {
-    console.log('Perfil guardado:', data, 'preview:', preview);
-    reset();
-    clearPreview();
+  const onSubmit = async (data) => {
+    setSubmitStatus('loading');
+    setSubmitError('');
+    try {
+      const file = fileInputRef.current?.files?.[0];
+      let avatarUrl = null;
+
+      if (file) {
+        avatarUrl = await uploadToVault(file);
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({ points: data.points, avatar_url: avatarUrl });
+
+      if (error) throw error;
+
+      setSubmitStatus('success');
+      reset();
+      clearPreview();
+    } catch (err) {
+      setSubmitStatus('error');
+      setSubmitError(err?.message ?? 'Ocurrió un error al guardar.');
+    }
   };
 
   const featuredPosts = publicaciones.slice(0, 3);
@@ -204,6 +228,7 @@ export function Inicio() {
                   onChange={onFileSelected}
                   style={{ width: '100%', fontSize: '0.8rem' }}
                 />
+
                 {preview && (
                   <div style={{ marginTop: '0.5rem' }}>
                     <img src={preview} alt="Preview" style={{ width: '100%', borderRadius: '8px', maxHeight: '140px', objectFit: 'cover' }} />
@@ -218,11 +243,19 @@ export function Inicio() {
                 )}
               </div>
 
+              {submitStatus === 'success' && (
+                <span style={{ color: '#2ecc71', fontSize: '0.8rem' }}>Guardado correctamente.</span>
+              )}
+              {submitStatus === 'error' && (
+                <span style={{ color: '#e74c3c', fontSize: '0.8rem' }}>{submitError}</span>
+              )}
+
               <button
                 type="submit"
-                style={{ padding: '0.4rem', borderRadius: '6px', border: 'none', background: '#4f6ef7', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}
+                disabled={submitStatus === 'loading'}
+                style={{ padding: '0.4rem', borderRadius: '6px', border: 'none', background: '#4f6ef7', color: '#fff', cursor: submitStatus === 'loading' ? 'not-allowed' : 'pointer', fontSize: '0.8rem', opacity: submitStatus === 'loading' ? 0.7 : 1 }}
               >
-                Guardar
+                {submitStatus === 'loading' ? 'Guardando...' : 'Guardar'}
               </button>
             </form>
           </article>
