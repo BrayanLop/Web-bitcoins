@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export function Navbar({ user, onLogout, cartCount = 0 }) {
+export function Navbar({ user, avatarUrl, onLogout, cartCount = 0 }) {
   return (
     <nav className="dashboard-navbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -25,8 +25,19 @@ export function Navbar({ user, onLogout, cartCount = 0 }) {
             {user.email}
           </span>
         )}
-        <Link to="/perfil" style={{ fontSize: '0.8rem', color: '#4f6ef7', textDecoration: 'none', fontWeight: 600 }}>
-          Mi perfil
+        <Link to="/perfil" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="avatar"
+              style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4f6ef7' }}
+            />
+          ) : (
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#4f6ef7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
+              {user?.email?.[0]?.toUpperCase() ?? '?'}
+            </div>
+          )}
+          <span style={{ fontSize: '0.8rem', color: '#4f6ef7', fontWeight: 600 }}>Mi perfil</span>
         </Link>
         <button
           onClick={onLogout}

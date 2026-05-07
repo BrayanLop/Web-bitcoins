@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserSchema } from '../schemas/UserValidator';
@@ -8,6 +8,7 @@ import { supabase } from '../data/dataContext';
 
 export function Perfil() {
   const { preview, onFileSelected, clearPreview, fileInputRef } = useImagePreview();
+  const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<null | 'loading' | 'success' | 'error'>(null);
   const [submitError, setSubmitError] = useState('');
 
@@ -17,12 +18,28 @@ export function Perfil() {
     defaultValues: { points: 1 },
   });
 
+  useEffect(() => {
+    const cargarPerfil = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url, points')
+        .eq('id', user.id)
+        .single();
+      if (data?.avatar_url) setCurrentAvatar(data.avatar_url);
+      if (data?.points) reset({ points: data.points });
+    };
+    cargarPerfil();
+  }, [reset]);
+
   const onSubmit = async (data: any) => {
     setSubmitStatus('loading');
     setSubmitError('');
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const file = fileInputRef.current?.files?.[0];
-      let avatarUrl = null;
+      let avatarUrl = currentAvatar;
 
       if (file) {
         avatarUrl = await uploadToVault(file);
@@ -30,12 +47,13 @@ export function Perfil() {
 
       const { error } = await supabase
         .from('profiles')
-        .upsert({ points: data.points, avatar_url: avatarUrl });
+        .upsert({ id: user?.id, points: data.points, avatar_url: avatarUrl });
 
       if (error) throw error;
 
+      if (avatarUrl) setCurrentAvatar(avatarUrl);
       setSubmitStatus('success');
-      reset();
+      reset({ points: data.points });
       clearPreview();
     } catch (err: any) {
       setSubmitStatus('error');
@@ -54,11 +72,11 @@ export function Perfil() {
 
       <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '18px', padding: '2rem' }}>
 
-        {preview && (
+        {(preview || currentAvatar) && (
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.75rem' }}>
             <img
-              src={preview}
-              alt="Vista previa"
+              src={preview ?? currentAvatar!}
+              alt="Foto de perfil"
               style={{ width: 110, height: 110, borderRadius: '50%', objectFit: 'cover', border: '3px solid #4f6ef7', boxShadow: '0 0 20px rgba(79,110,247,0.3)' }}
             />
           </div>

@@ -46,14 +46,27 @@ function LayoutBase() {
   const [publicaciones, setPublicaciones] = useState<CommunityPost[]>(initialPosts);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        supabase.from('profiles').select('avatar_url').eq('id', data.user.id).single()
+          .then(({ data: profile }) => { if (profile?.avatar_url) setAvatarUrl(profile.avatar_url); });
+      }
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        supabase.from('profiles').select('avatar_url').eq('id', session.user.id).single()
+          .then(({ data: profile }) => { setAvatarUrl(profile?.avatar_url ?? null); });
+      } else {
+        setAvatarUrl(null);
+      }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [])
 
   async function onLogout() {
     await supabase.auth.signOut();
@@ -118,7 +131,7 @@ function LayoutBase() {
 
   return (
     <>
-      <Navbar user={user} onLogout={onLogout} cartCount={cartItems.reduce((s, i) => s + i.cantidad, 0)} />
+      <Navbar user={user} avatarUrl={avatarUrl} onLogout={onLogout} cartCount={cartItems.reduce((s, i) => s + i.cantidad, 0)} />
       <div className="dashboard-content">
         <Sidebar />
         <main className="dashboard-main">
