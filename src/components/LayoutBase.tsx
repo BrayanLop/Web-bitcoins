@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import '../App.css';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import type { CartItem, CommunityPost, DashboardOutletContext, PriceStat, Product } from '../types';
+import type { User } from '@supabase/supabase-js';
+import { supabase } from '../data/dataContext';
 
 const initialStats: PriceStat[] = [
   { label: 'Precio Actual', value: '$67,500' },
@@ -39,9 +41,24 @@ const initialPosts: CommunityPost[] = [
 ];
 
 function LayoutBase() {
+  const navigate = useNavigate();
   const [moneda, setMoneda] = useState<string>('BTC');
   const [publicaciones, setPublicaciones] = useState<CommunityPost[]>(initialPosts);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function onLogout() {
+    await supabase.auth.signOut();
+    navigate('/login');
+  }
 
   function addToCart(product: Product) {
     setCartItems((currentItems) => {
@@ -95,11 +112,13 @@ function LayoutBase() {
     addToCart,
     removeFromCart,
     clearCart,
+    user,
+    onLogout,
   };
 
   return (
     <>
-      <Navbar />
+      <Navbar user={user} onLogout={onLogout} cartCount={cartItems.reduce((s, i) => s + i.cantidad, 0)} />
       <div className="dashboard-content">
         <Sidebar />
         <main className="dashboard-main">

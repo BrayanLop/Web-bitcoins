@@ -2,22 +2,35 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
+const navItems = [
+  { to: '/', icon: '🏠', label: 'Dashboard', end: true },
+  { to: '/mercado', icon: '📈', label: 'Mercado' },
+  { to: '/historial', icon: '📋', label: 'Historial' },
+  { to: '/operaciones', icon: '⚡', label: 'Operar' },
+  { to: '/comunidad', icon: '💬', label: 'Comunidad' },
+  { to: '/tienda', icon: '🛍️', label: 'Tienda' },
+  { to: '/carrito', icon: '🛒', label: 'Carrito' },
+  { to: '/tareas', icon: '✅', label: 'Tareas' },
+  { to: '/perfil', icon: '👤', label: 'Perfil' },
+];
+
 export function Sidebar() {
   return (
     <aside className="app-sidebar">
       <div className="app-sidebar-header">
-        <span className="app-sidebar-label">Navegacion</span>
-        <strong className="app-sidebar-title">Panel</strong>
+        <span className="app-sidebar-label">Navegación</span>
+        <strong className="app-sidebar-title">CryptoRat</strong>
       </div>
       <nav className="app-sidebar-nav">
         <ul className="app-sidebar-menu">
-          <li><NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">01</span><span>Inicio</span></NavLink></li>
-          <li><NavLink to="/precio" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">02</span><span>Precio</span></NavLink></li>
-          <li><NavLink to="/historial" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">03</span><span>Historial</span></NavLink></li>
-          <li><NavLink to="/comentarios" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">04</span><span>Comunidad</span></NavLink></li>
-          <li><NavLink to="/productos" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">05</span><span>Productos</span></NavLink></li>
-          <li><NavLink to="/cart" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">06</span><span>Carrito</span></NavLink></li>
-          <li><NavLink to="/nexus" className={({ isActive }) => isActive ? 'active' : ''}><span className="app-sidebar-icon">₿</span><span>Rat</span></NavLink></li>
+          {navItems.map(({ to, icon, label, end }) => (
+            <li key={to}>
+              <NavLink to={to} end={end} className={({ isActive }) => isActive ? 'active' : ''}>
+                <span className="app-sidebar-icon">{icon}</span>
+                <span>{label}</span>
+              </NavLink>
+            </li>
+          ))}
         </ul>
       </nav>
     </aside>

@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
+import type { User } from '@supabase/supabase-js';
 
 export interface AppUser {
   id: number;
@@ -79,6 +80,8 @@ export interface DashboardOutletContext {
   addToCart: (product: Product) => void;
   removeFromCart: (productId: number) => void;
   clearCart: () => void;
+  user: User | null;
+  onLogout: () => void;
 }
 
 export type TaskDraft = Omit<TaskItem, 'id' | 'completed' | 'createdAt'>;

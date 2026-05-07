@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Lista } from './Lista';
 import type { TaskDraft, TaskItem } from '../types';
 
-const initialCategories: string[] = ['categoria1', 'categoria2', 'categoria3'];
+const initialCategories: string[] = ['Análisis', 'Trading', 'Aprendizaje', 'Seguimiento'];
 
 function ToDo() {
   const [categorias] = useState<string[]>(initialCategories);
@@ -35,7 +35,11 @@ function ToDo() {
         }
 
     return (
-        <>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '1.5rem 1rem' }}>
+          <div style={{ marginBottom: '1.75rem' }}>
+            <h2 style={{ color: '#fff', fontSize: '1.5rem', margin: '0 0 0.35rem', fontWeight: 700 }}>Tareas</h2>
+            <p style={{ color: '#8ea4c8', fontSize: '0.88rem', margin: 0 }}>Organiza tu plan de trading y seguimiento de mercado.</p>
+          </div>
             <div className='todo-input-row' style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: '1rem', marginBottom: '1rem' }}>
               <input id="texto-tarea"
                     type="text"
@@ -81,7 +85,7 @@ function ToDo() {
             </div>
 
             <Lista idLista="lista-tareas" items={listaTareas} aplicaEliminar={eliminarTarea} />
-        </>
+        </div>
     );
 }
 

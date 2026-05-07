@@ -1,11 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { UserSchema } from '../schemas/UserValidator';
-import { useImagePreview } from '../hooks/useImagePreview';
-import { uploadToVault } from "../services/StorageService";
-import { supabase } from "../data/dataContext";
 
 const activityItems = [
   {
@@ -29,51 +23,15 @@ const activityItems = [
 ];
 
 const quickAccess = [
-  { label: 'Ver precios', to: '/precio' },
-  { label: 'Entrar a comunidad', to: '/comentarios' },
-  { label: 'Revisar tareas', to: '/tareas' },
+  { label: 'Ver mercado', to: '/mercado' },
+  { label: 'Operar', to: '/operaciones' },
+  { label: 'Comunidad', to: '/comunidad' },
 ];
 
 export function Inicio() {
   const outletContext = useOutletContext();
   const publicaciones = outletContext?.publicaciones ?? [];
   const stats = outletContext?.stats ?? [];
-
-  const { preview, onFileSelected, clearPreview, fileInputRef } = useImagePreview();
-  const [submitStatus, setSubmitStatus] = useState(null); // null | 'loading' | 'success' | 'error'
-  const [submitError, setSubmitError] = useState('');
-
-  const { register, handleSubmit, formState: { errors }, reset } = useForm({
-    resolver: zodResolver(UserSchema),
-    mode: 'onChange',
-    defaultValues: { points: 1 },
-  });
-
-  const onSubmit = async (data) => {
-    setSubmitStatus('loading');
-    setSubmitError('');
-    try {
-      const file = fileInputRef.current?.files?.[0];
-      let avatarUrl = null;
-
-      if (file) {
-        avatarUrl = await uploadToVault(file);
-      }
-
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({ points: data.points, avatar_url: avatarUrl });
-
-      if (error) throw error;
-
-      setSubmitStatus('success');
-      reset();
-      clearPreview();
-    } catch (err) {
-      setSubmitStatus('error');
-      setSubmitError(err?.message ?? 'Ocurrió un error al guardar.');
-    }
-  };
 
   const featuredPosts = publicaciones.slice(0, 3);
   const featuredStats = stats.slice(0, 3);
@@ -83,10 +41,10 @@ export function Inicio() {
       <div className="home-wall-hero">
         <div className="home-wall-hero-copy">
           <span className="home-wall-kicker">CryptoRat</span>
-          <h2 className="home-wall-title">Bitcoin</h2>
+          <h2 className="home-wall-title">Dashboard</h2>
           <p className="home-wall-description">
-            Aquí tienes un resumen vivo del mercado, publicaciones destacadas de la comunidad y accesos
-            rápidos para seguir operando sin entrar pantalla por pantalla.
+            Resumen en vivo del mercado, publicaciones destacadas de la comunidad y accesos
+            rápidos para operar sin perder tiempo.
           </p>
 
           <div className="home-wall-actions">
@@ -123,8 +81,8 @@ export function Inicio() {
                 <span className="home-wall-card-kicker">Feed principal</span>
                 <h3 className="home-wall-card-title">Lo que se está comentando ahora</h3>
               </div>
-              <Link className="dashboard-btn-ghost home-wall-link-secondary" to="/comentarios">
-                Ver muro completo
+              <Link className="dashboard-btn-ghost home-wall-link-secondary" to="/comunidad">
+                Ver comunidad
               </Link>
             </div>
 
@@ -187,77 +145,29 @@ export function Inicio() {
 
           <article className="home-wall-card home-wall-mini-card">
             <span className="home-wall-card-kicker">Atajos</span>
-            <h3 className="home-wall-card-title">Siguiente paso</h3>
+            <h3 className="home-wall-card-title">Accesos rápidos</h3>
             <div className="home-wall-shortcuts">
-              <Link className="home-wall-shortcut" to="/productos">
-                <strong>Productos</strong>
-                <span>Explora el catálogo y agrega al carrito.</span>
+              <Link className="home-wall-shortcut" to="/mercado">
+                <strong>Mercado</strong>
+                <span>Precios y estadísticas en tiempo real.</span>
               </Link>
               <Link className="home-wall-shortcut" to="/historial">
                 <strong>Historial</strong>
                 <span>Consulta el comportamiento reciente por moneda.</span>
               </Link>
-              <Link className="home-wall-shortcut" to="/nexus">
-                <strong>Nexus</strong>
-                <span>Abre el panel extendido con balance y actividad.</span>
+              <Link className="home-wall-shortcut" to="/operaciones">
+                <strong>Operar</strong>
+                <span>Ejecuta órdenes de compra y venta de BTC.</span>
+              </Link>
+              <Link className="home-wall-shortcut" to="/tienda">
+                <strong>Tienda</strong>
+                <span>Explora el catálogo y agrega al carrito.</span>
+              </Link>
+              <Link className="home-wall-shortcut" to="/perfil">
+                <strong>Mi perfil</strong>
+                <span>Actualiza tu foto y puntos de reputación.</span>
               </Link>
             </div>
-          </article>
-          <article className="home-wall-card home-wall-mini-card">
-            <span className="home-wall-card-kicker">Perfil rápido</span>
-            <h3 className="home-wall-card-title">Puntos e imagen</h3>
-
-            <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div>
-                <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>Puntos</label>
-                <input
-                  type="number"
-                  placeholder="Ingresa tus puntos"
-                  {...register('points', { valueAsNumber: true })}
-                  style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid #333', background: '#1a1a2e', color: '#fff' }}
-                />
-                {errors.points && <span style={{ color: '#e74c3c', fontSize: '0.75rem' }}>{errors.points.message}</span>}
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block' }}>Imagen</label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={onFileSelected}
-                  style={{ width: '100%', fontSize: '0.8rem' }}
-                />
-
-                {preview && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <img src={preview} alt="Preview" style={{ width: '100%', borderRadius: '8px', maxHeight: '140px', objectFit: 'cover' }} />
-                    <button
-                      type="button"
-                      onClick={clearPreview}
-                      style={{ marginTop: '0.4rem', width: '100%', padding: '0.35rem', borderRadius: '6px', border: '1px solid #e74c3c', background: 'transparent', color: '#e74c3c', cursor: 'pointer', fontSize: '0.8rem' }}
-                    >
-                      Limpiar imagen
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {submitStatus === 'success' && (
-                <span style={{ color: '#2ecc71', fontSize: '0.8rem' }}>Guardado correctamente.</span>
-              )}
-              {submitStatus === 'error' && (
-                <span style={{ color: '#e74c3c', fontSize: '0.8rem' }}>{submitError}</span>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitStatus === 'loading'}
-                style={{ padding: '0.4rem', borderRadius: '6px', border: 'none', background: '#4f6ef7', color: '#fff', cursor: submitStatus === 'loading' ? 'not-allowed' : 'pointer', fontSize: '0.8rem', opacity: submitStatus === 'loading' ? 0.7 : 1 }}
-              >
-                {submitStatus === 'loading' ? 'Guardando...' : 'Guardar'}
-              </button>
-            </form>
           </article>
         </aside>
       </div>
