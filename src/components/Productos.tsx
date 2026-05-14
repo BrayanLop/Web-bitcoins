@@ -1,6 +1,7 @@
 import { Link, useOutletContext } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { useAssets } from '../hooks/useAssets';
+import { ConfirmModal } from './ConfirmModal';
 import type { DashboardOutletContext, Product } from '../types';
 import type { Asset } from '../types/Asset';
 import { useState } from 'react';
@@ -11,7 +12,7 @@ function Productos() {
   const { data: productos, loading, error } = useFetch<Product[]>('https://fakestoreapi.com/products');
   
   // Hook CRUD para assets
-  const { assets, handleCreate, handleDelete, handleEdit, handleSave, editedImage } = useAssets();
+  const { assets, handleCreate, handleDelete, handleEdit, handleSave, editedImage, handleDeleteAll, loading: loadingAssets, error: errorAssets } = useAssets();
   
   // Estados para crear/editar asset
   const [showForm, setShowForm] = useState(false);
@@ -21,46 +22,111 @@ function Productos() {
     amount: 0,
   });
 
+  // Estados para modal de confirmación
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'deleteOne' | 'deleteAll' | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  // Estado para feedback de guardado
+  const [savingAsset, setSavingAsset] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Estado para búsqueda inteligente
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filtrar assets por búsqueda
+  const filteredAssets = assets.filter(asset =>
+    asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    asset.file_path.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    asset.amount.toString().includes(searchTerm)
+  );
+
   // Crear un nuevo asset
-  const handleCreateAsset = () => {
+  const handleCreateAsset = async () => {
     if (!formData.name || !file) {
       alert('Nombre y archivo son requeridos');
       return;
     }
     
     const newAsset: Asset = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       name: formData.name,
       amount: formData.amount,
       file_path: file.name,
       created_at: new Date().toISOString(),
     };
     
-    handleCreate(newAsset);
-    resetForm();
+    try {
+      setSavingAsset(true);
+      await handleCreate(newAsset);
+      setSuccessMessage('✅ Asset creado exitosamente');
+      resetForm();
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error al crear asset:', err);
+      setSuccessMessage(null);
+    } finally {
+      setSavingAsset(false);
+    }
   };
 
   // Actualizar un asset
-  const handleUpdateAsset = () => {
+  const handleUpdateAsset = async () => {
     if (!editedImage || !formData.name) {
       alert('Nombre es requerido');
       return;
     }
     
-    handleSave({
-      ...editedImage,
-      name: formData.name,
-      amount: formData.amount,
-      file_path: file?.name || editedImage.file_path,
-    });
-    
-    resetForm();
+    try {
+      setSavingAsset(true);
+      await handleSave({
+        ...editedImage,
+        name: formData.name,
+        amount: formData.amount,
+        file_path: file?.name || editedImage.file_path,
+      });
+      setSuccessMessage('✅ Asset actualizado exitosamente');
+      resetForm();
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error al actualizar asset:', err);
+      setSuccessMessage(null);
+    } finally {
+      setSavingAsset(false);
+    }
   };
 
   const resetForm = () => {
     setFormData({ name: '', amount: 0 });
     setFile(null);
     setShowForm(false);
+  };
+
+  const openDeleteConfirm = (assetId: string) => {
+    setItemToDelete(assetId);
+    setConfirmAction('deleteOne');
+    setShowConfirmModal(true);
+  };
+
+  const openDeleteAllConfirm = () => {
+    setConfirmAction('deleteAll');
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = async () => {
+    try {
+      if (confirmAction === 'deleteOne' && itemToDelete) {
+        await handleDelete(itemToDelete);
+      } else if (confirmAction === 'deleteAll') {
+        await handleDeleteAll();
+      }
+    } catch (err) {
+      console.error('Error en confirmación:', err);
+    } finally {
+      setShowConfirmModal(false);
+      setItemToDelete(null);
+      setConfirmAction(null);
+    }
   };
 
   const startEdit = (asset: Asset) => {
@@ -80,16 +146,63 @@ function Productos() {
       <div className='assets-section'>
         <div className='assets-header'>
           <h3>📁 Gestor de Assets</h3>
-          <button 
-            onClick={() => {
-              if (editedImage) resetForm();
-              setShowForm(!showForm);
-            }}
-            className='btn-add-asset'
-          >
-            {showForm ? '✕ Cancelar' : '➕ Nuevo Asset'}
-          </button>
+          <div className='assets-header-buttons'>
+            <button 
+              onClick={() => {
+                if (editedImage) resetForm();
+                setShowForm(!showForm);
+              }}
+              className='btn-add-asset'
+            >
+              {showForm ? '✕ Cancelar' : '➕ Nuevo Asset'}
+            </button>
+            {assets.length > 0 && (
+              <button 
+                onClick={openDeleteAllConfirm}
+                className='btn-clear-all'
+              >
+                🗑️ Limpiar Todos
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Buscador inteligente */}
+        {assets.length > 0 && (
+          <div className='assets-search'>
+            <input
+              type="text"
+              placeholder="🔍 Buscar por nombre, archivo o cantidad..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='search-input'
+            />
+            {searchTerm && (
+              <div className='search-results-info'>
+                📊 {filteredAssets.length} de {assets.length} resultados
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Mensajes de error y carga */}
+        {errorAssets && (
+          <div className='error-message'>
+            ⚠️ {errorAssets}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className='success-message'>
+            {successMessage}
+          </div>
+        )}
+
+        {loadingAssets && (
+          <div className='loading-message'>
+            ⏳ Cargando assets...
+          </div>
+        )}
 
         {/* Formulario */}
         {showForm && (
@@ -130,12 +243,14 @@ function Productos() {
               <button
                 onClick={editedImage ? handleUpdateAsset : handleCreateAsset}
                 className='btn-submit'
+                disabled={savingAsset}
               >
-                {editedImage ? '💾 Actualizar' : '✅ Crear'}
+                {savingAsset ? '⏳ Guardando...' : (editedImage ? '💾 Actualizar' : '✅ Crear')}
               </button>
               <button
                 onClick={resetForm}
                 className='btn-cancel'
+                disabled={savingAsset}
               >
                 ✕ Cancelar
               </button>
@@ -145,39 +260,47 @@ function Productos() {
 
         {/* Lista de Assets */}
         {assets.length > 0 ? (
-          <div className='assets-grid'>
-            {assets.map((asset) => (
-              <div key={asset.id} className={`asset-card ${editedImage?.id === asset.id ? 'active' : ''}`}>
-                <div className='asset-header-card'>
-                  <h4>📦 {asset.name}</h4>
-                  <span className='asset-id'>ID: {asset.id}</span>
-                </div>
-                
-                <div className='asset-info'>
-                  <p><strong>Archivo:</strong> {asset.file_path}</p>
-                  <p><strong>Cantidad:</strong> {asset.amount}</p>
-                  <p className='asset-date'>{new Date(asset.created_at).toLocaleDateString()}</p>
-                </div>
+          <>
+            {filteredAssets.length > 0 ? (
+              <div className='assets-grid'>
+                {filteredAssets.map((asset) => (
+                  <div key={asset.id} className={`asset-card ${editedImage?.id === asset.id ? 'active' : ''}`}>
+                    <div className='asset-header-card'>
+                      <h4>📦 {asset.name}</h4>
+                      <span className='asset-id'>ID: {asset.id}</span>
+                    </div>
+                    
+                    <div className='asset-info'>
+                      <p><strong>Archivo:</strong> {asset.file_path}</p>
+                      <p><strong>Cantidad:</strong> {asset.amount}</p>
+                      <p className='asset-date'>{new Date(asset.created_at).toLocaleDateString()}</p>
+                    </div>
 
-                <div className='asset-actions'>
-                  <button
-                    onClick={() => startEdit(asset)}
-                    className='btn-edit'
-                    title="Editar asset"
-                  >
-                    ✏️ Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(asset.id)}
-                    className='btn-delete'
-                    title="Eliminar asset"
-                  >
-                    🗑️ Eliminar
-                  </button>
-                </div>
+                    <div className='asset-actions'>
+                      <button
+                        onClick={() => startEdit(asset)}
+                        className='btn-edit'
+                        title="Editar asset"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => openDeleteConfirm(asset.id)}
+                        className='btn-delete'
+                        title="Eliminar asset"
+                      >
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className='no-results'>
+                🔍 No se encontraron assets que coincidan con "{searchTerm}"
+              </div>
+            )}
+          </>
         ) : (
           <p className='empty-state'>📭 No hay assets. ¡Crea uno nuevo!</p>
         )}
@@ -211,6 +334,26 @@ function Productos() {
           <p>No hay productos disponibles.</p>
         )}
       </div>
+
+      {/* Modal de Confirmación */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title={confirmAction === 'deleteAll' ? '⚠️ Eliminar todos los assets' : '⚠️ Eliminar asset'}
+        message={
+          confirmAction === 'deleteAll'
+            ? '¿Está seguro de que desea eliminar TODOS los assets? Esta acción no se puede deshacer.'
+            : '¿Está seguro de que desea eliminar este asset? Esta acción no se puede deshacer.'
+        }
+        confirmText={confirmAction === 'deleteAll' ? 'Eliminar Todos' : 'Eliminar'}
+        cancelText="Cancelar"
+        confirmColor="danger"
+        onConfirm={handleConfirm}
+        onCancel={() => {
+          setShowConfirmModal(false);
+          setItemToDelete(null);
+          setConfirmAction(null);
+        }}
+      />
     </div>
   );
 }
